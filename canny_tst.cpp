@@ -4,46 +4,70 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int, char**)
+using namespace cv;
+using namespace std;
+
+int main(int argc, char **argv)
 {
-    cv::VideoCapture cap("/home/sebas/Desktop/vision/Media/Minirover.mp4"); // open the video file;
-    //VideoCapture cap(0);
+    const string about =
+        "This sample demonstrates Canny Image Processing.\n";
+
+    const string keys = 
+        "{ h help |      | print this help message }"
+        "{ @image | vtest.avi | path to image file }";
     
-    //if(!stream1.isOpened()){
-    //cout << "cannot open camera" << endl;
-    //}
+    CommandLineParser parser(argc, argv, keys);
+    parser.about(about);
+
+
+    if (parser.has("help")){
+        parser.printMessage();
+        return 0;
+    }
+    string filename = samples::findFile(parser.get<string>("@image"));
+    if (!parser.check()){
+        parser.printErrors();
+        return 0;
+    }
+    VideoCapture cap("/home/josue/code/edge_detection/Minirover.mp4"); 
+    // VideoCapture cap(0);
+    
+    // if(!stream1.isOpened()){
+    // cout << "cannot open video file" << endl;
+    // }
 
     while (true) {
-        cv::Mat blurredImage;
-        cv::Mat cannyImage;
-        cv::Mat cameraFrame;
-        cv::Mat houghImage;
-        cv::Mat cdstP;
+        Mat blurredImage;
+        Mat cannyImage;
+        Mat cameraFrame;
+        Mat houghImage;
+        Mat cdstP;
         
         cap.read(cameraFrame);
         //imshow("Source Input", cameraFrame);
 
-        cameraFrame = cameraFrame(cv::Range(80,1000),cv::Range(300,1620)); 
+        cameraFrame = cameraFrame(Range(80,1000),Range(300,1620)); 
         //imshow("cropped", cameraFrame_cut);
         cdstP = cameraFrame.clone();
-        cv::GaussianBlur(cameraFrame, blurredImage, cv::Size(9, 9), 0);
+        GaussianBlur(cameraFrame, blurredImage, Size(9, 9), 0);
         //imshow("Gaussian Blur", blurredImage);
-        cv::cvtColor(cameraFrame, cannyImage, cv::COLOR_BGR2GRAY);
-        cv::Canny( cannyImage, cannyImage, 1396, 973, 5 );
-        cv::imshow("Canny", cannyImage);
+        cvtColor(cameraFrame, cannyImage, COLOR_BGR2GRAY);
+        Canny( cannyImage, cannyImage, 1396, 973, 5 );
+        imshow("Canny", cannyImage);
         
-        std::vector<cv::Vec4i> lines;
-        cv::HoughLinesP(cannyImage, lines, 1, CV_PI/180, 50, 30, 10 );
+        std::vector<Vec4i> lines;
+        HoughLinesP(cannyImage, lines, 1, CV_PI/180, 50, 30, 10 );
         for( size_t i = 0; i < lines.size(); i++ )
         {
-        cv::Vec4i l = lines[i];
-        cv::line( cdstP, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,0,255), 3, cv::LINE_AA);
+        Vec4i l = lines[i];
+        line( cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
         }
-        cv::imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
+        imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP);
 
-        if (cv::waitKey(30) >= 0)
+
+        int keyboard = waitKey(30);
+        if (keyboard = 'q' || keyboard == 27)
             break;
-
         }
 return 0;
 }
